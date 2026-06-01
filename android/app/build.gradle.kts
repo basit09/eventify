@@ -23,15 +23,32 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.eventmanage.event_management"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+
+    // ── Flavors ───────────────────────────────────────────────────────────────
+    flavorDimensions += listOf("environment")
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            // Separate app ID so dev & prod can be installed side-by-side
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            // Override app label shown on the home screen
+            resValue("string", "app_name", "MA Decorators DEV")
+        }
+        create("prod") {
+            dimension = "environment"
+            // Prod uses the base applicationId — no suffix
+            resValue("string", "app_name", "M. A. Decorators")
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     buildTypes {
         release {

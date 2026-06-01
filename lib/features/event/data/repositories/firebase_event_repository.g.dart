@@ -22,7 +22,7 @@ final class EventRepositoryProvider
         argument: null,
         retry: null,
         name: r'eventRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -49,7 +49,7 @@ final class EventRepositoryProvider
   }
 }
 
-String _$eventRepositoryHash() => r'eba5d56178dfc5d8e14905c1278ba676425d8321';
+String _$eventRepositoryHash() => r'ed0ca028c7fd6998369917784ea0ad0d6791289d';
 
 @ProviderFor(eventsStream)
 final eventsStreamProvider = EventsStreamProvider._();
@@ -70,7 +70,7 @@ final class EventsStreamProvider
         argument: null,
         retry: null,
         name: r'eventsStreamProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -90,4 +90,4 @@ final class EventsStreamProvider
   }
 }
 
-String _$eventsStreamHash() => r'e049898f8e2a8b9a4ae1c1342f5fed01b16c3e89';
+String _$eventsStreamHash() => r'e8080ab8b497eb4acb46834f6f64fa6a6ed75932';

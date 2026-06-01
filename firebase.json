@@ -1,1 +1,54 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"event-management-b8187","appId":"1:737814594801:android:9cd1721d8a97c810fed550","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"event-management-b8187","appId":"1:737814594801:ios:59040b399ecbbcc1fed550","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"event-management-b8187","configurations":{"android":"1:737814594801:android:9cd1721d8a97c810fed550","ios":"1:737814594801:ios:59040b399ecbbcc1fed550"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "event-management-b8187",
+          "appId": "1:737814594801:android:9cd1721d8a97c810fed550",
+          "fileOutput": "android/app/src/prod/google-services.json"
+        },
+        "dev": {
+          "projectId": "event-management-dev-a6863",
+          "appId": "1:673571377665:android:01be724a76f04e78466600",
+          "fileOutput": "android/app/src/dev/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "event-management-b8187",
+          "appId": "1:737814594801:ios:59040b399ecbbcc1fed550",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        },
+        "dev": {
+          "projectId": "event-management-dev-a6863",
+          "appId": "1:673571377665:ios:983f443204c459f0466600",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info-Dev.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options_prod.dart": {
+          "projectId": "event-management-b8187",
+          "configurations": {
+            "android": "1:737814594801:android:9cd1721d8a97c810fed550",
+            "ios": "1:737814594801:ios:59040b399ecbbcc1fed550"
+          }
+        },
+        "lib/firebase_options_dev.dart": {
+          "projectId": "event-management-dev-a6863",
+          "configurations": {
+            "android": "1:673571377665:android:01be724a76f04e78466600",
+            "ios": "1:673571377665:ios:983f443204c459f0466600"
+          }
+        }
+      }
+    }
+  }
+}

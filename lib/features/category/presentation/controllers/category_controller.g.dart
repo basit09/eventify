@@ -34,7 +34,7 @@ final class CategoryControllerProvider
 }
 
 String _$categoryControllerHash() =>
-    r'4f24d4ad73d12d215d94273c7c09e73a357bf910';
+    r'90d506e40248714109fa9997f6f2e96cf10b1bfd';
 
 abstract class _$CategoryController extends $AsyncNotifier<void> {
   FutureOr<void> build();

@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🟠 DEV — M. A. Decorators",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_dev.dart",
+      "args": [
+        "--flavor", "dev",
+        "--dart-define=APP_FLAVOR=dev"
+      ]
+    },
+    {
+      "name": "🟢 PROD — M. A. Decorators",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--flavor", "prod",
+        "--dart-define=APP_FLAVOR=prod"
+      ]
+    }
+  ]
+}

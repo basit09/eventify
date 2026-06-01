@@ -1,16 +1,27 @@
+// PRODUCTION entry point.
+// Run with:
+//   flutter run --flavor prod -t lib/main.dart --dart-define=APP_FLAVOR=prod
+//   flutter build apk --flavor prod -t lib/main.dart --dart-define=APP_FLAVOR=prod --release
+//
+// Also the default when running without any flavor flags (backward-compatible).
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_theme.dart';
 import 'core/constants/theme_provider.dart';
 import 'core/router/app_router.dart';
-import 'firebase_options.dart';
+import 'firebase_options_prod.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: ProdFirebaseOptions.currentPlatform,
+    );
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') rethrow;
+    // Native Firebase already initialised (hot-restart) — safe to continue.
+  }
   runApp(
     const ProviderScope(
       child: MyApp(),
@@ -27,7 +38,7 @@ class MyApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeControllerProvider);
 
     return MaterialApp.router(
-      title: 'Event Management',
+      title: 'M. A. Decorators',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,

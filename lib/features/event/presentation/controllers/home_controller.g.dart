@@ -20,7 +20,7 @@ final class HomeStatsProvider
         argument: null,
         retry: null,
         name: r'homeStatsProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class HomeStatsProvider
   }
 }
 
-String _$homeStatsHash() => r'20a00a72583851809a63017935a777540406fe29';
+String _$homeStatsHash() => r'67a56806613869a30f87cc0b204fdc3266f76c1b';
 
 abstract class _$HomeStats extends $Notifier<Map<String, int>> {
   Map<String, int> build();

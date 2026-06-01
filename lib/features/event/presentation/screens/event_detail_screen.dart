@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
+import '../../../category/data/repositories/firebase_category_repository.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/entities/event_category_item.dart';
 import '../../data/repositories/firebase_event_repository.dart';
@@ -22,14 +23,17 @@ class EventDetailScreen extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           // ── Hero App Bar ──────────────────────────────────────────────
-          SliverAppBar.large(
-            expandedHeight: 200,
+          SliverAppBar.medium(
+            expandedHeight: 130,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
               title: Text(
                 event.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -156,10 +160,32 @@ class EventDetailScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 20),
                     _InfoRow(
+                      icon: Icons.build_circle_outlined,
+                      label: 'Setup Date',
+                      value: dateFormat.format(event.setupDate),
+                    ),
+                    const Divider(height: 20),
+                    _InfoRow(
                       icon: Icons.location_on_outlined,
                       label: 'Address',
                       value: event.address,
                     ),
+                    if (event.contactPerson?.isNotEmpty == true) ...[
+                      const Divider(height: 20),
+                      _InfoRow(
+                        icon: Icons.person_outline,
+                        label: 'Contact Person',
+                        value: event.contactPerson!,
+                      ),
+                    ],
+                    if (event.contactPhone?.isNotEmpty == true) ...[
+                      const Divider(height: 20),
+                      _InfoRow(
+                        icon: Icons.phone_outlined,
+                        label: 'Contact Phone',
+                        value: event.contactPhone!,
+                      ),
+                    ],
                     const Divider(height: 20),
                     _InfoRow(
                       icon: Icons.inventory_2_outlined,
@@ -210,6 +236,7 @@ class EventDetailScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => _showPdfPreview(context),
         icon: const Icon(Icons.print),
         label: const Text('Export PDF'),
@@ -230,6 +257,9 @@ class EventDetailScreen extends ConsumerWidget {
             build: (format) => EventPdfGenerator.generateReceipt(event),
             allowPrinting: true,
             allowSharing: true,
+            actionBarTheme: const PdfActionBarTheme(
+              iconColor: Colors.white,
+            ),
           ),
         ),
       ),
@@ -262,6 +292,16 @@ class EventDetailScreen extends ConsumerWidget {
     );
   }
 }
+
+// ── Dimension helpers ─────────────────────────────────────────────────────────
+bool _detailHasDimensions(EventCategoryItem item) =>
+    item.height?.isNotEmpty == true ||
+    item.length?.isNotEmpty == true ||
+    item.lengthB?.isNotEmpty == true ||
+    item.width?.isNotEmpty == true ||
+    item.itemHeight?.isNotEmpty == true ||
+    item.depth?.isNotEmpty == true ||
+    item.size?.isNotEmpty == true;
 
 // ── Reusable widgets ──────────────────────────────────────────────────────────
 
@@ -321,15 +361,28 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _CategoryItemCard extends StatelessWidget {
+class _CategoryItemCard extends ConsumerWidget {
   final int index;
   final EventCategoryItem item;
 
   const _CategoryItemCard({required this.index, required this.item});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final categoriesAsync = ref.watch(categoriesStreamProvider);
+    String? imageUrl;
+    
+    categoriesAsync.whenData((categories) {
+      try {
+        final category = categories.firstWhere((c) => c.id == item.categoryId);
+        if (item.subcategoryId.isNotEmpty) {
+          final subcategory = category.subcategories.firstWhere((s) => s.id == item.subcategoryId);
+          imageUrl = subcategory.imageUrl;
+        }
+      } catch (_) {}
+    });
+
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 12),
@@ -395,14 +448,76 @@ class _CategoryItemCard extends StatelessWidget {
                   text: 'Qty: ${item.quantity}',
                   color: theme.colorScheme.primary,
                 ),
-                if (item.size != null && item.size!.isNotEmpty)
-                  _DetailChip(
-                    icon: Icons.straighten,
-                    text: 'Size: ${item.size}',
-                    color: theme.colorScheme.secondary,
-                  ),
+                if (_detailHasDimensions(item)) ...[
+                  // Row 1 — H × L
+                  if (item.height?.isNotEmpty == true || item.length?.isNotEmpty == true)
+                    _DetailChip(
+                      icon: Icons.height,
+                      text: [
+                        if (item.height?.isNotEmpty == true) item.height!,
+                        if (item.length?.isNotEmpty == true) item.length!,
+                      ].join(' × '),
+                      color: theme.colorScheme.secondary,
+                    ),
+                  // Row 2 — L × W
+                  if (item.lengthB?.isNotEmpty == true || item.width?.isNotEmpty == true)
+                    _DetailChip(
+                      icon: Icons.straighten,
+                      text: [
+                        if (item.lengthB?.isNotEmpty == true) item.lengthB!,
+                        if (item.width?.isNotEmpty == true) item.width!,
+                      ].join(' × '),
+                      color: theme.colorScheme.secondary,
+                    ),
+                  // Row 3 — H
+                  if (item.itemHeight?.isNotEmpty == true)
+                    _DetailChip(
+                      icon: Icons.height_outlined,
+                      text: 'H: ${item.itemHeight}',
+                      color: theme.colorScheme.secondary,
+                    ),
+                  // Row 3 — D
+                  if (item.depth?.isNotEmpty == true)
+                    _DetailChip(
+                      icon: Icons.layers_outlined,
+                      text: 'D: ${item.depth}',
+                      color: theme.colorScheme.secondary,
+                    ),
+                  // Legacy fallback
+                  if (item.height == null && item.length == null &&
+                      item.lengthB == null && item.width == null &&
+                      item.itemHeight == null && item.depth == null &&
+                      item.size?.isNotEmpty == true)
+                    _DetailChip(
+                      icon: Icons.straighten,
+                      text: 'Size: ${item.size}',
+                      color: theme.colorScheme.secondary,
+                    ),
+                ],
               ],
             ),
+
+            // Image
+            if (imageUrl != null && imageUrl!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  imageUrl!,
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, err, stack) => const SizedBox.shrink(),
+                  loadingBuilder: (ctx, child, progress) {
+                    if (progress == null) return child;
+                    return const SizedBox(
+                      height: 150,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                ),
+              ),
+            ],
 
             // Notes
             if (item.additionalNotes != null &&

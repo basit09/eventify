@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/subcategory_entity.dart';
@@ -8,8 +10,9 @@ part 'firebase_category_repository.g.dart';
 
 class FirebaseCategoryRepository implements CategoryRepository {
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
-  FirebaseCategoryRepository(this._firestore);
+  FirebaseCategoryRepository(this._firestore, this._storage);
 
   CollectionReference get _categoriesCollection => _firestore.collection('categories');
 
@@ -37,7 +40,7 @@ class FirebaseCategoryRepository implements CategoryRepository {
   }
 
   @override
-  Future<void> addSubcategory(String categoryId, String subcategoryName) async {
+  Future<void> addSubcategory(String categoryId, String subcategoryName, {File? imageFile}) async {
     final docRef = _categoriesCollection.doc(categoryId);
     final docSnap = await docRef.get();
     if (!docSnap.exists) return;
@@ -46,10 +49,19 @@ class FirebaseCategoryRepository implements CategoryRepository {
     data['id'] = docSnap.id;
     final category = CategoryEntity.fromJson(data);
 
+    final subId = docRef.collection('subcategories').doc().id;
+    String? imageUrl;
+
+    if (imageFile != null) {
+      final storageRef = _storage.ref().child('subcategories').child('$subId.jpg');
+      await storageRef.putFile(imageFile);
+      imageUrl = await storageRef.getDownloadURL();
+    }
+
     final newSub = SubcategoryEntity(
-      // Ensure unique ID for the subcategory
-      id: docRef.collection('subcategories').doc().id,
+      id: subId,
       name: subcategoryName,
+      imageUrl: imageUrl,
     );
 
     final updatedSubs = List<SubcategoryEntity>.from(category.subcategories)..add(newSub);
@@ -75,13 +87,24 @@ class FirebaseCategoryRepository implements CategoryRepository {
   }
 
   /// Creates a new category and optionally attaches a first subcategory.
-  Future<void> addCategoryWithSubcategory(String categoryName, String? subcategoryName) async {
+  @override
+  Future<void> addCategoryWithSubcategory(String categoryName, String? subcategoryName, {File? imageFile}) async {
     final newDoc = _categoriesCollection.doc();
     final subs = <SubcategoryEntity>[];
     if (subcategoryName != null && subcategoryName.trim().isNotEmpty) {
+      final subId = newDoc.collection('subs').doc().id;
+      String? imageUrl;
+
+      if (imageFile != null) {
+        final storageRef = _storage.ref().child('subcategories').child('$subId.jpg');
+        await storageRef.putFile(imageFile);
+        imageUrl = await storageRef.getDownloadURL();
+      }
+
       subs.add(SubcategoryEntity(
-        id: newDoc.collection('subs').doc().id,
+        id: subId,
         name: subcategoryName.trim(),
+        imageUrl: imageUrl,
       ));
     }
     final category = CategoryEntity(
@@ -96,17 +119,25 @@ class FirebaseCategoryRepository implements CategoryRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 FirebaseFirestore firebaseFirestore(Ref ref) {
   return FirebaseFirestore.instance;
 }
 
-@riverpod
-CategoryRepository categoryRepository(Ref ref) {
-  return FirebaseCategoryRepository(ref.watch(firebaseFirestoreProvider));
+@Riverpod(keepAlive: true)
+FirebaseStorage firebaseStorage(Ref ref) {
+  return FirebaseStorage.instance;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
+CategoryRepository categoryRepository(Ref ref) {
+  return FirebaseCategoryRepository(
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(firebaseStorageProvider),
+  );
+}
+
+@Riverpod(keepAlive: true)
 Stream<List<CategoryEntity>> categoriesStream(Ref ref) {
   return ref.watch(categoryRepositoryProvider).watchCategories();
 }

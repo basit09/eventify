@@ -107,59 +107,57 @@ class HomeScreen extends ConsumerWidget {
           ),
 
           // Events List
-          eventsAsync.when(
-            data: (events) {
-              if (events.isEmpty) {
-                return SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.event_busy, size: 64, color: theme.colorScheme.outline),
-                          const SizedBox(height: 16),
-                          Text('No events created yet.', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }
-
-              // Show only first 5 for the dashboard
-              final recentEvents = events.take(5).toList();
-
-              return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final event = recentEvents[index];
-                      return _EventCard(event: event);
-                    },
-                    childCount: recentEvents.length,
-                  ),
-                ),
-              );
-            },
-            loading: () => const SliverToBoxAdapter(
+          if (eventsAsync.isLoading && !eventsAsync.hasValue)
+            const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(32.0),
                 child: Center(child: CircularProgressIndicator()),
               ),
-            ),
-            error: (e, s) => SliverToBoxAdapter(
+            )
+          else if (eventsAsync.hasError && !eventsAsync.hasValue)
+            SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
-                child: Center(child: Text('Error loading events: $e')),
+                child: Center(child: Text('Error loading events: ${eventsAsync.error}')),
               ),
-            ),
-          ),
+            )
+          else ...[
+            if (eventsAsync.hasValue && eventsAsync.value!.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.event_busy, size: 64, color: theme.colorScheme.outline),
+                        const SizedBox(height: 16),
+                        Text('No events created yet.', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else if (eventsAsync.hasValue)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final recentEvents = eventsAsync.value!.take(5).toList();
+                      final event = recentEvents[index];
+                      return _EventCard(event: event);
+                    },
+                    childCount: eventsAsync.value!.take(5).length,
+                  ),
+                ),
+              ),
+          ],
           
           const SliverPadding(padding: EdgeInsets.only(bottom: 80)), // FAB spacing
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () {
           // We will configure a route for this soon
           context.push('/home/create-event');

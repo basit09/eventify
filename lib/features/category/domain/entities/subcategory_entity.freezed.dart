@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SubcategoryEntity {
 
- String get id; String get name;
+ String get id; String get name; String? get imageUrl;
 /// Create a copy of SubcategoryEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SubcategoryEntityCopyWith<SubcategoryEntity> get copyWith => _$SubcategoryEntit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubcategoryEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SubcategoryEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name);
+int get hashCode => Object.hash(runtimeType,id,name,imageUrl);
 
 @override
 String toString() {
-  return 'SubcategoryEntity(id: $id, name: $name)';
+  return 'SubcategoryEntity(id: $id, name: $name, imageUrl: $imageUrl)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SubcategoryEntityCopyWith<$Res>  {
   factory $SubcategoryEntityCopyWith(SubcategoryEntity value, $Res Function(SubcategoryEntity) _then) = _$SubcategoryEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String name
+ String id, String name, String? imageUrl
 });
 
 
@@ -65,11 +65,12 @@ class _$SubcategoryEntityCopyWithImpl<$Res>
 
 /// Create a copy of SubcategoryEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? imageUrl = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
+as String,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -154,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? imageUrl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SubcategoryEntity() when $default != null:
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.imageUrl);case _:
   return orElse();
 
 }
@@ -175,10 +176,10 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? imageUrl)  $default,) {final _that = this;
 switch (_that) {
 case _SubcategoryEntity():
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.imageUrl);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +196,10 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? imageUrl)?  $default,) {final _that = this;
 switch (_that) {
 case _SubcategoryEntity() when $default != null:
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.imageUrl);case _:
   return null;
 
 }
@@ -210,11 +211,12 @@ return $default(_that.id,_that.name);case _:
 @JsonSerializable()
 
 class _SubcategoryEntity implements SubcategoryEntity {
-  const _SubcategoryEntity({required this.id, required this.name});
+  const _SubcategoryEntity({required this.id, required this.name, this.imageUrl});
   factory _SubcategoryEntity.fromJson(Map<String, dynamic> json) => _$SubcategoryEntityFromJson(json);
 
 @override final  String id;
 @override final  String name;
+@override final  String? imageUrl;
 
 /// Create a copy of SubcategoryEntity
 /// with the given fields replaced by the non-null parameter values.
@@ -229,16 +231,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubcategoryEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SubcategoryEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name);
+int get hashCode => Object.hash(runtimeType,id,name,imageUrl);
 
 @override
 String toString() {
-  return 'SubcategoryEntity(id: $id, name: $name)';
+  return 'SubcategoryEntity(id: $id, name: $name, imageUrl: $imageUrl)';
 }
 
 
@@ -249,7 +251,7 @@ abstract mixin class _$SubcategoryEntityCopyWith<$Res> implements $SubcategoryEn
   factory _$SubcategoryEntityCopyWith(_SubcategoryEntity value, $Res Function(_SubcategoryEntity) _then) = __$SubcategoryEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name
+ String id, String name, String? imageUrl
 });
 
 
@@ -266,11 +268,12 @@ class __$SubcategoryEntityCopyWithImpl<$Res>
 
 /// Create a copy of SubcategoryEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? imageUrl = freezed,}) {
   return _then(_SubcategoryEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
+as String,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

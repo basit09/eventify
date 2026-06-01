@@ -3,7 +3,7 @@ import '../../data/repositories/firebase_event_repository.dart';
 
 part 'home_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class HomeStats extends _$HomeStats {
   @override
   Map<String, int> build() {

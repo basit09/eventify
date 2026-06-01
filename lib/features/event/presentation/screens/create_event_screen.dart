@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
@@ -18,16 +19,21 @@ class CreateEventScreen extends ConsumerStatefulWidget {
 
 class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _addressController = TextEditingController();
+  final _nameController         = TextEditingController();
+  final _addressController      = TextEditingController();
+  final _contactPersonController = TextEditingController();
+  final _contactPhoneController  = TextEditingController();
 
   DateTime? _startDate;
   DateTime? _endDate;
+  DateTime? _setupDate;
 
   @override
   void dispose() {
     _nameController.dispose();
     _addressController.dispose();
+    _contactPersonController.dispose();
+    _contactPhoneController.dispose();
     super.dispose();
   }
 
@@ -47,6 +53,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         _endDate = range.end;
       });
     }
+  }
+
+  Future<void> _pickSetupDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _setupDate ?? now,
+      firstDate: now.subtract(const Duration(days: 365)),
+      lastDate: now.add(const Duration(days: 365 * 5)),
+    );
+    if (picked != null) setState(() => _setupDate = picked);
   }
 
   void _showAddCategorySheet() {
@@ -71,6 +88,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       return;
     }
 
+    if (_setupDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a setup date.')),
+      );
+      return;
+    }
+
     final items = ref.read(eventFormItemsProvider);
     if (items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,7 +107,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           name: _nameController.text.trim(),
           startDate: _startDate!,
           endDate: _endDate!,
+          setupDate: _setupDate!,
           address: _addressController.text.trim(),
+          contactPerson: _contactPersonController.text.trim(),
+          contactPhone: _contactPhoneController.text.trim(),
           items: items,
         );
 
@@ -120,6 +147,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final dateLabel = _startDate == null || _endDate == null
         ? 'Tap to select From → To dates'
         : '${DateFormat('MMM d, yyyy').format(_startDate!)}  →  ${DateFormat('MMM d, yyyy').format(_endDate!)}';
+    final setupDateLabel = _setupDate == null
+        ? 'Tap to select setup date'
+        : DateFormat('MMM d, yyyy').format(_setupDate!);
 
     return Scaffold(
       appBar: AppBar(
@@ -172,17 +202,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
-                      // ── Date Range Picker ────────────────────────────
+                      // ── Event Date Range ─────────────────────────────
                       InkWell(
                         onTap: _pickDateRange,
                         borderRadius: BorderRadius.circular(12),
                         child: InputDecorator(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Event Dates (From → To)',
-                            prefixIcon: const Icon(Icons.date_range),
-                            errorText: (_startDate == null && _endDate == null)
-                                ? null
-                                : null,
+                            prefixIcon: Icon(Icons.date_range),
                           ),
                           child: Text(
                             dateLabel,
@@ -193,6 +220,73 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             ),
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      // ── Setup Date (mandatory) ────────────────────────
+                      InkWell(
+                        onTap: _pickSetupDate,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Setup Date *',
+                            prefixIcon: const Icon(Icons.build_circle_outlined),
+                            suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: _setupDate == null
+                                    ? theme.colorScheme.outline
+                                    : theme.colorScheme.primary,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+                            ),
+                          ),
+                          child: Text(
+                            setupDateLabel,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: _setupDate == null
+                                  ? theme.colorScheme.onSurfaceVariant
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // ── Contact Person ────────────────────────────────
+                      TextFormField(
+                        controller: _contactPersonController,
+                        decoration: const InputDecoration(
+                          labelText: 'Contact Person',
+                          prefixIcon: Icon(Icons.person_outline),
+                          hintText: 'e.g. Ali Hassan',
+                        ),
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                      const SizedBox(height: 16),
+                      // ── Contact Phone ─────────────────────────────────
+                      TextFormField(
+                        controller: _contactPhoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Contact Person Phone',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                          hintText: 'e.g. 3001234567',
+                          counterText: '', // hide the built-in maxLength counter
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return null; // optional field
+                          if (v.trim().length != 10) {
+                            return 'Phone number must be exactly 10 digits';
+                          }
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -322,10 +416,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                 _InfoChip(
                                     icon: Icons.format_list_numbered,
                                     label: 'Qty: ${item.quantity}'),
-                                if (item.size != null && item.size!.isNotEmpty)
+                                if (_hasDimensions(item))
                                   _InfoChip(
                                       icon: Icons.straighten,
-                                      label: 'Size: ${item.size}'),
+                                      label: _dimensionLabel(item)),
                                 if (item.additionalNotes != null &&
                                     item.additionalNotes!.isNotEmpty)
                                   _InfoChip(
@@ -346,6 +440,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       // ── Floating Save Button ────────────────────────────────────────────
       floatingActionButton: createEventState.isLoading
           ? FloatingActionButton.extended(
+              heroTag: null,
               onPressed: null,
               icon: const SizedBox(
                   height: 20,
@@ -355,6 +450,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               label: const Text('Saving...'),
             )
           : FloatingActionButton.extended(
+              heroTag: null,
               onPressed: _submit,
               icon: const Icon(Icons.save_outlined),
               label: const Text('Save Event'),
@@ -365,6 +461,69 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 }
 
 // ── Small info chip widget ────────────────────────────────────────────────────
+/// Reusable row widget for dimension pairs.
+/// [showMultiply] controls whether a "×" separator appears between the fields.
+class _DimRow extends StatelessWidget {
+  final TextEditingController leftController;
+  final String leftLabel;
+  final IconData leftIcon;
+  final TextEditingController rightController;
+  final String rightLabel;
+  final IconData rightIcon;
+  final bool showMultiply;
+
+  const _DimRow({
+    required this.leftController,
+    required this.leftLabel,
+    required this.leftIcon,
+    required this.rightController,
+    required this.rightLabel,
+    required this.rightIcon,
+    required this.showMultiply,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextFormField(
+            controller: leftController,
+            decoration: InputDecoration(
+              labelText: leftLabel,
+              hintText: 'e.g. 10ft',
+              prefixIcon: Icon(leftIcon),
+            ),
+          ),
+        ),
+        if (showMultiply)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              '×',
+              style: theme.textTheme.titleLarge
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          )
+        else
+          const SizedBox(width: 12),
+        Expanded(
+          child: TextFormField(
+            controller: rightController,
+            decoration: InputDecoration(
+              labelText: rightLabel,
+              hintText: 'e.g. 10ft',
+              prefixIcon: Icon(rightIcon),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _InfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -386,6 +545,36 @@ class _InfoChip extends StatelessWidget {
   }
 }
 
+// ── Dimension helpers (shared by create & display) ────────────────────────────
+bool _hasDimensions(EventCategoryItem item) =>
+    item.height?.isNotEmpty == true ||
+    item.length?.isNotEmpty == true ||
+    item.lengthB?.isNotEmpty == true ||
+    item.width?.isNotEmpty == true ||
+    item.itemHeight?.isNotEmpty == true ||
+    item.depth?.isNotEmpty == true ||
+    item.size?.isNotEmpty == true;
+
+/// Compact chip label — e.g. "10 × 5  8 × 4  H:3  D:2"
+String _dimensionLabel(EventCategoryItem item) {
+  final parts = <String>[];
+  // Row 1: H × L
+  final row1 = <String>[];
+  if (item.height?.isNotEmpty == true) row1.add(item.height!);
+  if (item.length?.isNotEmpty == true) row1.add(item.length!);
+  if (row1.isNotEmpty) parts.add(row1.join(' × '));
+  // Row 2: L × W
+  final row2 = <String>[];
+  if (item.lengthB?.isNotEmpty == true) row2.add(item.lengthB!);
+  if (item.width?.isNotEmpty == true) row2.add(item.width!);
+  if (row2.isNotEmpty) parts.add(row2.join(' × '));
+  // Row 3: H  D
+  if (item.itemHeight?.isNotEmpty == true) parts.add('H:${item.itemHeight}');
+  if (item.depth?.isNotEmpty == true) parts.add('D:${item.depth}');
+  if (parts.isNotEmpty) return parts.join('  ');
+  return item.size ?? '';
+}
+
 // ── Bottom Sheet for adding category items ────────────────────────────────────
 class _AddCategoryItemSheet extends ConsumerStatefulWidget {
   const _AddCategoryItemSheet();
@@ -400,30 +589,38 @@ class _AddCategoryItemSheetState
   CategoryEntity? _selectedCategory;
   SubcategoryEntity? _selectedSubcategory;
 
-  final _qtyController = TextEditingController(text: '1');
-  final _heightController = TextEditingController();
-  final _widthController = TextEditingController();
-  final _notesController = TextEditingController();
+  final _qtyController        = TextEditingController(text: '1');
+  // Row 1 — H × L
+  final _heightController     = TextEditingController();
+  final _lengthController     = TextEditingController();
+  // Row 2 — L × W
+  final _lengthBController    = TextEditingController();
+  final _widthController      = TextEditingController();
+  // Row 3 — H  D  (no ×)
+  final _itemHeightController = TextEditingController();
+  final _depthController      = TextEditingController();
+
+  final _notesController      = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _qtyController.dispose();
     _heightController.dispose();
+    _lengthController.dispose();
+    _lengthBController.dispose();
     _widthController.dispose();
+    _itemHeightController.dispose();
+    _depthController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
+  String? _nullIfEmpty(String v) => v.isEmpty ? null : v;
+
   void _save() {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategory == null) return;
-
-    final sizeH = _heightController.text.trim();
-    final sizeW = _widthController.text.trim();
-    final sizeStr = (sizeH.isNotEmpty && sizeW.isNotEmpty)
-        ? '$sizeH x $sizeW'
-        : (sizeH.isNotEmpty ? sizeH : sizeW.isNotEmpty ? sizeW : null);
 
     final item = EventCategoryItem(
       id: const Uuid().v4(),
@@ -431,11 +628,14 @@ class _AddCategoryItemSheetState
       categoryName: _selectedCategory!.name,
       subcategoryId: _selectedSubcategory?.id ?? '',
       subcategoryName: _selectedSubcategory?.name ?? '—',
-      quantity: int.tryParse(_qtyController.text) ?? 1,
-      size: sizeStr,
-      additionalNotes: _notesController.text.trim().isNotEmpty
-          ? _notesController.text.trim()
-          : null,
+      quantity:   int.tryParse(_qtyController.text) ?? 1,
+      height:     _nullIfEmpty(_heightController.text.trim()),
+      length:     _nullIfEmpty(_lengthController.text.trim()),
+      lengthB:    _nullIfEmpty(_lengthBController.text.trim()),
+      width:      _nullIfEmpty(_widthController.text.trim()),
+      itemHeight: _nullIfEmpty(_itemHeightController.text.trim()),
+      depth:      _nullIfEmpty(_depthController.text.trim()),
+      additionalNotes: _nullIfEmpty(_notesController.text.trim()),
     );
 
     ref.read(eventFormItemsProvider.notifier).addItem(item);
@@ -451,165 +651,178 @@ class _AddCategoryItemSheetState
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomInset),
-      child: categoriesAsync.when(
-        loading: () => const SizedBox(
-            height: 200, child: Center(child: CircularProgressIndicator())),
-        error: (e, _) => SizedBox(
-            height: 200,
-            child: Center(child: Text('Error loading categories: $e'))),
-        data: (categories) {
-          if (categories.isEmpty) {
-            return SizedBox(
-              height: 200,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.category_outlined,
-                        size: 48, color: theme.colorScheme.outline),
-                    const SizedBox(height: 8),
-                    const Text(
-                        'No categories found.\nAdd categories from the Categories tab first.',
-                        textAlign: TextAlign.center),
-                  ],
+      child: _buildSheetContent(categoriesAsync, theme, subcategories),
+    );
+  }
+
+  Widget _buildSheetContent(AsyncValue<List<CategoryEntity>> categoriesAsync,
+      ThemeData theme, List<SubcategoryEntity> subcategories) {
+    // Only show loading on the very first fetch
+    if (categoriesAsync.isLoading && !categoriesAsync.hasValue) {
+      return const SizedBox(
+          height: 200, child: Center(child: CircularProgressIndicator()));
+    }
+
+    if (categoriesAsync.hasError && !categoriesAsync.hasValue) {
+      return SizedBox(
+          height: 200,
+          child: Center(child: Text('Error loading categories: ${categoriesAsync.error}')));
+    }
+
+    final categories = categoriesAsync.value ?? [];
+
+    if (categories.isEmpty) {
+      return SizedBox(
+        height: 200,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.category_outlined,
+                  size: 48, color: theme.colorScheme.outline),
+              const SizedBox(height: 8),
+              const Text(
+                  'No categories found.\nAdd categories from the Categories tab first.',
+                  textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
-            );
-          }
+            ),
+            Text('Add Category Item',
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
 
-          return Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Handle
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.outlineVariant,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                  Text('Add Category Item',
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20),
+            // Category dropdown
+            DropdownButtonFormField<CategoryEntity>(
+              decoration: const InputDecoration(
+                labelText: 'Category *',
+                prefixIcon: Icon(Icons.category_outlined),
+              ),
+              items: categories
+                  .map((c) =>
+                      DropdownMenuItem(value: c, child: Text(c.name)))
+                  .toList(),
+              onChanged: (val) => setState(() {
+                _selectedCategory = val;
+                _selectedSubcategory = null;
+              }),
+              validator: (v) => v == null ? 'Please select a category' : null,
+            ),
+            const SizedBox(height: 16),
 
-                  // Category dropdown
-                  DropdownButtonFormField<CategoryEntity>(
-                    decoration: const InputDecoration(
-                      labelText: 'Category *',
-                      prefixIcon: Icon(Icons.category_outlined),
-                    ),
-                    items: categories
-                        .map((c) =>
-                            DropdownMenuItem(value: c, child: Text(c.name)))
-                        .toList(),
-                    onChanged: (val) => setState(() {
-                      _selectedCategory = val;
-                      _selectedSubcategory = null;
-                    }),
-                    validator: (v) => v == null ? 'Please select a category' : null,
-                  ),
-                  const SizedBox(height: 16),
+            // Subcategory dropdown
+            DropdownButtonFormField<SubcategoryEntity>(
+              decoration: const InputDecoration(
+                labelText: 'Subcategory (Optional)',
+                prefixIcon: Icon(Icons.subdirectory_arrow_right),
+              ),
+              items: [
+                const DropdownMenuItem<SubcategoryEntity>(
+                    value: null, child: Text('— None —')),
+                ...subcategories.map((s) =>
+                    DropdownMenuItem(value: s, child: Text(s.name))),
+              ],
+              onChanged: (val) =>
+                  setState(() => _selectedSubcategory = val),
+            ),
+            const SizedBox(height: 16),
 
-                  // Subcategory dropdown
-                  DropdownButtonFormField<SubcategoryEntity>(
-                    decoration: const InputDecoration(
-                      labelText: 'Subcategory (Optional)',
-                      prefixIcon: Icon(Icons.subdirectory_arrow_right),
-                    ),
-                    items: [
-                      const DropdownMenuItem<SubcategoryEntity>(
-                          value: null, child: Text('— None —')),
-                      ...subcategories.map((s) =>
-                          DropdownMenuItem(value: s, child: Text(s.name))),
-                    ],
-                    onChanged: (val) =>
-                        setState(() => _selectedSubcategory = val),
-                  ),
-                  const SizedBox(height: 16),
+            // Quantity
+            TextFormField(
+              controller: _qtyController,
+              decoration: const InputDecoration(
+                labelText: 'Quantity *',
+                prefixIcon: Icon(Icons.format_list_numbered),
+              ),
+              keyboardType: TextInputType.number,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Required';
+                if (int.tryParse(v) == null || int.parse(v) < 1) {
+                  return 'Enter a valid number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
 
-                  // Quantity
-                  TextFormField(
-                    controller: _qtyController,
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity *',
-                      prefixIcon: Icon(Icons.format_list_numbered),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Required';
-                      if (int.tryParse(v) == null || int.parse(v) < 1) {
-                        return 'Enter a valid number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
+            // Row 1 — H × L
+            _DimRow(
+              leftController: _heightController,
+              leftLabel: 'H',
+              leftIcon: Icons.height,
+              rightController: _lengthController,
+              rightLabel: 'L',
+              rightIcon: Icons.straighten,
+              showMultiply: true,
+            ),
+            const SizedBox(height: 12),
 
-                  // Size: Height × Width
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _heightController,
-                          decoration: const InputDecoration(
-                            labelText: 'Height',
-                            hintText: 'e.g. 10ft',
-                            prefixIcon: Icon(Icons.height),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Text('×',
-                            style: theme.textTheme.titleLarge
-                                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _widthController,
-                          decoration: const InputDecoration(
-                            labelText: 'Width',
-                            hintText: 'e.g. 10ft',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+            // Row 2 — L × W
+            _DimRow(
+              leftController: _lengthBController,
+              leftLabel: 'L',
+              leftIcon: Icons.straighten,
+              rightController: _widthController,
+              rightLabel: 'W',
+              rightIcon: Icons.swap_horiz,
+              showMultiply: true,
+            ),
+            const SizedBox(height: 12),
 
-                  // Soft / notes field
-                  TextFormField(
-                    controller: _notesController,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Additional Notes (Soft Field)',
-                      prefixIcon: Icon(Icons.notes),
-                      hintText: 'Special requirements...',
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+            // Row 3 — H  D  (no ×)
+            _DimRow(
+              leftController: _itemHeightController,
+              leftLabel: 'H',
+              leftIcon: Icons.height_outlined,
+              rightController: _depthController,
+              rightLabel: 'D',
+              rightIcon: Icons.layers_outlined,
+              showMultiply: false,
+            ),
+            const SizedBox(height: 16),
 
-                  FilledButton.icon(
-                    onPressed: _save,
-                    icon: const Icon(Icons.check),
-                    label: const Text('Add to Event'),
-                  ),
-                  const SizedBox(height: 8),
-                ],
+            // Soft / notes field
+            TextFormField(
+              controller: _notesController,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'Additional Notes (Soft Field)',
+                prefixIcon: Icon(Icons.notes),
+                hintText: 'Special requirements...',
               ),
             ),
-          );
-        },
+            const SizedBox(height: 24),
+
+            FilledButton.icon(
+              onPressed: _save,
+              icon: const Icon(Icons.check),
+              label: const Text('Add to Event'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }

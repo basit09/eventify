@@ -15,8 +15,15 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EventCategoryItem {
 
- String get id; String get categoryId; String get categoryName; String get subcategoryId; String get subcategoryName; int get quantity; String? get size;// e.g. "10x10"
- String? get additionalNotes;
+ String get id; String get categoryId; String get categoryName; String get subcategoryId; String get subcategoryName; int get quantity;// Dimension fields — 6 inputs, 3 rows
+ String? get height;// Row-1 left  label "H"  (Height)
+ String? get length;// Row-1 right label "L"  (Length)
+ String? get lengthB;// Row-2 left  label "L"  (second Length / span)
+ String? get width;// Row-2 right label "W"  (Width)
+ String? get itemHeight;// Row-3 left  label "H"  (Height H)
+ String? get depth;// Row-3 right label "D"  (Depth)
+/// Legacy — kept for records saved before dimension fields existed.
+ String? get size; String? get additionalNotes;
 /// Create a copy of EventCategoryItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +36,16 @@ $EventCategoryItemCopyWith<EventCategoryItem> get copyWith => _$EventCategoryIte
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventCategoryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.subcategoryId, subcategoryId) || other.subcategoryId == subcategoryId)&&(identical(other.subcategoryName, subcategoryName) || other.subcategoryName == subcategoryName)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.size, size) || other.size == size)&&(identical(other.additionalNotes, additionalNotes) || other.additionalNotes == additionalNotes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventCategoryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.subcategoryId, subcategoryId) || other.subcategoryId == subcategoryId)&&(identical(other.subcategoryName, subcategoryName) || other.subcategoryName == subcategoryName)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.height, height) || other.height == height)&&(identical(other.length, length) || other.length == length)&&(identical(other.lengthB, lengthB) || other.lengthB == lengthB)&&(identical(other.width, width) || other.width == width)&&(identical(other.itemHeight, itemHeight) || other.itemHeight == itemHeight)&&(identical(other.depth, depth) || other.depth == depth)&&(identical(other.size, size) || other.size == size)&&(identical(other.additionalNotes, additionalNotes) || other.additionalNotes == additionalNotes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,categoryId,categoryName,subcategoryId,subcategoryName,quantity,size,additionalNotes);
+int get hashCode => Object.hash(runtimeType,id,categoryId,categoryName,subcategoryId,subcategoryName,quantity,height,length,lengthB,width,itemHeight,depth,size,additionalNotes);
 
 @override
 String toString() {
-  return 'EventCategoryItem(id: $id, categoryId: $categoryId, categoryName: $categoryName, subcategoryId: $subcategoryId, subcategoryName: $subcategoryName, quantity: $quantity, size: $size, additionalNotes: $additionalNotes)';
+  return 'EventCategoryItem(id: $id, categoryId: $categoryId, categoryName: $categoryName, subcategoryId: $subcategoryId, subcategoryName: $subcategoryName, quantity: $quantity, height: $height, length: $length, lengthB: $lengthB, width: $width, itemHeight: $itemHeight, depth: $depth, size: $size, additionalNotes: $additionalNotes)';
 }
 
 
@@ -49,7 +56,7 @@ abstract mixin class $EventCategoryItemCopyWith<$Res>  {
   factory $EventCategoryItemCopyWith(EventCategoryItem value, $Res Function(EventCategoryItem) _then) = _$EventCategoryItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String categoryId, String categoryName, String subcategoryId, String subcategoryName, int quantity, String? size, String? additionalNotes
+ String id, String categoryId, String categoryName, String subcategoryId, String subcategoryName, int quantity, String? height, String? length, String? lengthB, String? width, String? itemHeight, String? depth, String? size, String? additionalNotes
 });
 
 
@@ -66,7 +73,7 @@ class _$EventCategoryItemCopyWithImpl<$Res>
 
 /// Create a copy of EventCategoryItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? categoryId = null,Object? categoryName = null,Object? subcategoryId = null,Object? subcategoryName = null,Object? quantity = null,Object? size = freezed,Object? additionalNotes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? categoryId = null,Object? categoryName = null,Object? subcategoryId = null,Object? subcategoryName = null,Object? quantity = null,Object? height = freezed,Object? length = freezed,Object? lengthB = freezed,Object? width = freezed,Object? itemHeight = freezed,Object? depth = freezed,Object? size = freezed,Object? additionalNotes = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
@@ -74,7 +81,13 @@ as String,categoryName: null == categoryName ? _self.categoryName : categoryName
 as String,subcategoryId: null == subcategoryId ? _self.subcategoryId : subcategoryId // ignore: cast_nullable_to_non_nullable
 as String,subcategoryName: null == subcategoryName ? _self.subcategoryName : subcategoryName // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
-as int,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int,height: freezed == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as String?,length: freezed == length ? _self.length : length // ignore: cast_nullable_to_non_nullable
+as String?,lengthB: freezed == lengthB ? _self.lengthB : lengthB // ignore: cast_nullable_to_non_nullable
+as String?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as String?,itemHeight: freezed == itemHeight ? _self.itemHeight : itemHeight // ignore: cast_nullable_to_non_nullable
+as String?,depth: freezed == depth ? _self.depth : depth // ignore: cast_nullable_to_non_nullable
+as String?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as String?,additionalNotes: freezed == additionalNotes ? _self.additionalNotes : additionalNotes // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -161,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String categoryId,  String categoryName,  String subcategoryId,  String subcategoryName,  int quantity,  String? size,  String? additionalNotes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String categoryId,  String categoryName,  String subcategoryId,  String subcategoryName,  int quantity,  String? height,  String? length,  String? lengthB,  String? width,  String? itemHeight,  String? depth,  String? size,  String? additionalNotes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EventCategoryItem() when $default != null:
-return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId,_that.subcategoryName,_that.quantity,_that.size,_that.additionalNotes);case _:
+return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId,_that.subcategoryName,_that.quantity,_that.height,_that.length,_that.lengthB,_that.width,_that.itemHeight,_that.depth,_that.size,_that.additionalNotes);case _:
   return orElse();
 
 }
@@ -182,10 +195,10 @@ return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String categoryId,  String categoryName,  String subcategoryId,  String subcategoryName,  int quantity,  String? size,  String? additionalNotes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String categoryId,  String categoryName,  String subcategoryId,  String subcategoryName,  int quantity,  String? height,  String? length,  String? lengthB,  String? width,  String? itemHeight,  String? depth,  String? size,  String? additionalNotes)  $default,) {final _that = this;
 switch (_that) {
 case _EventCategoryItem():
-return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId,_that.subcategoryName,_that.quantity,_that.size,_that.additionalNotes);case _:
+return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId,_that.subcategoryName,_that.quantity,_that.height,_that.length,_that.lengthB,_that.width,_that.itemHeight,_that.depth,_that.size,_that.additionalNotes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +215,10 @@ return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String categoryId,  String categoryName,  String subcategoryId,  String subcategoryName,  int quantity,  String? size,  String? additionalNotes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String categoryId,  String categoryName,  String subcategoryId,  String subcategoryName,  int quantity,  String? height,  String? length,  String? lengthB,  String? width,  String? itemHeight,  String? depth,  String? size,  String? additionalNotes)?  $default,) {final _that = this;
 switch (_that) {
 case _EventCategoryItem() when $default != null:
-return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId,_that.subcategoryName,_that.quantity,_that.size,_that.additionalNotes);case _:
+return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId,_that.subcategoryName,_that.quantity,_that.height,_that.length,_that.lengthB,_that.width,_that.itemHeight,_that.depth,_that.size,_that.additionalNotes);case _:
   return null;
 
 }
@@ -217,7 +230,7 @@ return $default(_that.id,_that.categoryId,_that.categoryName,_that.subcategoryId
 @JsonSerializable()
 
 class _EventCategoryItem implements EventCategoryItem {
-  const _EventCategoryItem({required this.id, required this.categoryId, required this.categoryName, required this.subcategoryId, required this.subcategoryName, this.quantity = 1, this.size, this.additionalNotes});
+  const _EventCategoryItem({required this.id, required this.categoryId, required this.categoryName, required this.subcategoryId, required this.subcategoryName, this.quantity = 1, this.height, this.length, this.lengthB, this.width, this.itemHeight, this.depth, this.size, this.additionalNotes});
   factory _EventCategoryItem.fromJson(Map<String, dynamic> json) => _$EventCategoryItemFromJson(json);
 
 @override final  String id;
@@ -226,8 +239,21 @@ class _EventCategoryItem implements EventCategoryItem {
 @override final  String subcategoryId;
 @override final  String subcategoryName;
 @override@JsonKey() final  int quantity;
+// Dimension fields — 6 inputs, 3 rows
+@override final  String? height;
+// Row-1 left  label "H"  (Height)
+@override final  String? length;
+// Row-1 right label "L"  (Length)
+@override final  String? lengthB;
+// Row-2 left  label "L"  (second Length / span)
+@override final  String? width;
+// Row-2 right label "W"  (Width)
+@override final  String? itemHeight;
+// Row-3 left  label "H"  (Height H)
+@override final  String? depth;
+// Row-3 right label "D"  (Depth)
+/// Legacy — kept for records saved before dimension fields existed.
 @override final  String? size;
-// e.g. "10x10"
 @override final  String? additionalNotes;
 
 /// Create a copy of EventCategoryItem
@@ -243,16 +269,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventCategoryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.subcategoryId, subcategoryId) || other.subcategoryId == subcategoryId)&&(identical(other.subcategoryName, subcategoryName) || other.subcategoryName == subcategoryName)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.size, size) || other.size == size)&&(identical(other.additionalNotes, additionalNotes) || other.additionalNotes == additionalNotes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventCategoryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.subcategoryId, subcategoryId) || other.subcategoryId == subcategoryId)&&(identical(other.subcategoryName, subcategoryName) || other.subcategoryName == subcategoryName)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.height, height) || other.height == height)&&(identical(other.length, length) || other.length == length)&&(identical(other.lengthB, lengthB) || other.lengthB == lengthB)&&(identical(other.width, width) || other.width == width)&&(identical(other.itemHeight, itemHeight) || other.itemHeight == itemHeight)&&(identical(other.depth, depth) || other.depth == depth)&&(identical(other.size, size) || other.size == size)&&(identical(other.additionalNotes, additionalNotes) || other.additionalNotes == additionalNotes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,categoryId,categoryName,subcategoryId,subcategoryName,quantity,size,additionalNotes);
+int get hashCode => Object.hash(runtimeType,id,categoryId,categoryName,subcategoryId,subcategoryName,quantity,height,length,lengthB,width,itemHeight,depth,size,additionalNotes);
 
 @override
 String toString() {
-  return 'EventCategoryItem(id: $id, categoryId: $categoryId, categoryName: $categoryName, subcategoryId: $subcategoryId, subcategoryName: $subcategoryName, quantity: $quantity, size: $size, additionalNotes: $additionalNotes)';
+  return 'EventCategoryItem(id: $id, categoryId: $categoryId, categoryName: $categoryName, subcategoryId: $subcategoryId, subcategoryName: $subcategoryName, quantity: $quantity, height: $height, length: $length, lengthB: $lengthB, width: $width, itemHeight: $itemHeight, depth: $depth, size: $size, additionalNotes: $additionalNotes)';
 }
 
 
@@ -263,7 +289,7 @@ abstract mixin class _$EventCategoryItemCopyWith<$Res> implements $EventCategory
   factory _$EventCategoryItemCopyWith(_EventCategoryItem value, $Res Function(_EventCategoryItem) _then) = __$EventCategoryItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String categoryId, String categoryName, String subcategoryId, String subcategoryName, int quantity, String? size, String? additionalNotes
+ String id, String categoryId, String categoryName, String subcategoryId, String subcategoryName, int quantity, String? height, String? length, String? lengthB, String? width, String? itemHeight, String? depth, String? size, String? additionalNotes
 });
 
 
@@ -280,7 +306,7 @@ class __$EventCategoryItemCopyWithImpl<$Res>
 
 /// Create a copy of EventCategoryItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? categoryId = null,Object? categoryName = null,Object? subcategoryId = null,Object? subcategoryName = null,Object? quantity = null,Object? size = freezed,Object? additionalNotes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? categoryId = null,Object? categoryName = null,Object? subcategoryId = null,Object? subcategoryName = null,Object? quantity = null,Object? height = freezed,Object? length = freezed,Object? lengthB = freezed,Object? width = freezed,Object? itemHeight = freezed,Object? depth = freezed,Object? size = freezed,Object? additionalNotes = freezed,}) {
   return _then(_EventCategoryItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
@@ -288,7 +314,13 @@ as String,categoryName: null == categoryName ? _self.categoryName : categoryName
 as String,subcategoryId: null == subcategoryId ? _self.subcategoryId : subcategoryId // ignore: cast_nullable_to_non_nullable
 as String,subcategoryName: null == subcategoryName ? _self.subcategoryName : subcategoryName // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
-as int,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int,height: freezed == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as String?,length: freezed == length ? _self.length : length // ignore: cast_nullable_to_non_nullable
+as String?,lengthB: freezed == lengthB ? _self.lengthB : lengthB // ignore: cast_nullable_to_non_nullable
+as String?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as String?,itemHeight: freezed == itemHeight ? _self.itemHeight : itemHeight // ignore: cast_nullable_to_non_nullable
+as String?,depth: freezed == depth ? _self.depth : depth // ignore: cast_nullable_to_non_nullable
+as String?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as String?,additionalNotes: freezed == additionalNotes ? _self.additionalNotes : additionalNotes // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

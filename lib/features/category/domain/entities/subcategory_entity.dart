@@ -8,6 +8,7 @@ abstract class SubcategoryEntity with _$SubcategoryEntity {
   const factory SubcategoryEntity({
     required String id,
     required String name,
+    String? imageUrl,
   }) = _SubcategoryEntity;
 
   factory SubcategoryEntity.fromJson(Map<String, dynamic> json) => _$SubcategoryEntityFromJson(json);

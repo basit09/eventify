@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
+import '../../../category/data/repositories/firebase_category_repository.dart';
 
 part 'firebase_event_repository.g.dart';
 
@@ -12,44 +13,47 @@ class FirebaseEventRepository implements EventRepository {
 
   CollectionReference get _eventsCollection => _firestore.collection('events');
 
+  /// Normalises a raw Firestore document map so it can be passed to
+  /// [EventEntity.fromJson] safely, even for events created before the
+  /// `setupDate`, `contactPerson`, and `contactPhone` fields were added.
+  Map<String, dynamic> _normalise(Map<String, dynamic> data, String docId) {
+    data['id'] = docId;
+
+    // Convert Timestamps → ISO-8601 strings for freezed / json_serializable
+    for (final field in ['startDate', 'endDate', 'setupDate']) {
+      if (data[field] is Timestamp) {
+        data[field] = (data[field] as Timestamp).toDate().toIso8601String();
+      }
+    }
+
+    // Backward-compat: old documents have no setupDate → fall back to startDate
+    data['setupDate'] ??= data['startDate'];
+
+    return data;
+  }
+
   @override
   Stream<List<EventEntity>> watchEvents() {
     return _eventsCollection
         .orderBy('startDate', descending: true)
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
-        if (data['startDate'] is Timestamp) {
-          data['startDate'] = (data['startDate'] as Timestamp).toDate().toIso8601String();
-        }
-        if (data['endDate'] is Timestamp) {
-          data['endDate'] = (data['endDate'] as Timestamp).toDate().toIso8601String();
-        }
-        return EventEntity.fromJson(data);
-      }).toList();
-    });
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EventEntity.fromJson(
+                _normalise(doc.data() as Map<String, dynamic>, doc.id)))
+            .toList());
   }
 
   @override
   Future<List<EventEntity>> getRecentEvents() async {
     final snapshot = await _eventsCollection
-        .orderBy('startDate', descending: true) // Changed from 'date' to 'startDate'
+        .orderBy('startDate', descending: true)
         .limit(10)
         .get();
 
-    return snapshot.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      data['id'] = doc.id;
-      if (data['startDate'] is Timestamp) {
-        data['startDate'] = (data['startDate'] as Timestamp).toDate().toIso8601String();
-      }
-      if (data['endDate'] is Timestamp) {
-        data['endDate'] = (data['endDate'] as Timestamp).toDate().toIso8601String();
-      }
-      return EventEntity.fromJson(data);
-    }).toList();
+    return snapshot.docs
+        .map((doc) => EventEntity.fromJson(
+            _normalise(doc.data() as Map<String, dynamic>, doc.id)))
+        .toList();
   }
 
   @override
@@ -80,13 +84,12 @@ class FirebaseEventRepository implements EventRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 EventRepository eventRepository(Ref ref) {
-  // Use FirebaseFirestore.instance directly or inject it
-  return FirebaseEventRepository(FirebaseFirestore.instance);
+  return FirebaseEventRepository(ref.watch(firebaseFirestoreProvider));
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<EventEntity>> eventsStream(Ref ref) {
   return ref.watch(eventRepositoryProvider).watchEvents();
 }

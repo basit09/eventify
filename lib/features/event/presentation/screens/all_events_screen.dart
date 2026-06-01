@@ -67,40 +67,48 @@ class _AllEventsScreenState extends ConsumerState<AllEventsScreen> {
           ),
         ),
       ),
-      body: eventsAsync.when(
-        data: (events) {
-          final filteredEvents = events.where((e) {
-            return e.name.toLowerCase().contains(_searchQuery);
-          }).toList();
+      body: _buildBody(eventsAsync, theme),
+    );
+  }
 
-          if (filteredEvents.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search_off, size: 64, color: theme.colorScheme.outline),
-                  const SizedBox(height: 16),
-                  Text(
-                    _searchQuery.isEmpty ? 'No events found.' : 'No matches for "$_searchQuery"',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            );
-          }
+  Widget _buildBody(AsyncValue<List<EventEntity>> eventsAsync, ThemeData theme) {
+    // Only show loading spinner on the very first fetch
+    if (eventsAsync.isLoading && !eventsAsync.hasValue) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: filteredEvents.length,
-            itemBuilder: (context, index) {
-              final event = filteredEvents[index];
-              return _EventCard(event: event);
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error: $e')),
-      ),
+    if (eventsAsync.hasError && !eventsAsync.hasValue) {
+      return Center(child: Text('Error: ${eventsAsync.error}'));
+    }
+
+    final events = eventsAsync.value ?? [];
+    final filteredEvents = events.where((e) {
+      return e.name.toLowerCase().contains(_searchQuery);
+    }).toList();
+
+    if (filteredEvents.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 64, color: theme.colorScheme.outline),
+            const SizedBox(height: 16),
+            Text(
+              _searchQuery.isEmpty ? 'No events found.' : 'No matches for "$_searchQuery"',
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: filteredEvents.length,
+      itemBuilder: (context, index) {
+        final event = filteredEvents[index];
+        return _EventCard(event: event);
+      },
     );
   }
 }

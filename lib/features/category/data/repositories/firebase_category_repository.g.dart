@@ -26,7 +26,7 @@ final class FirebaseFirestoreProvider
         argument: null,
         retry: null,
         name: r'firebaseFirestoreProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -54,7 +54,49 @@ final class FirebaseFirestoreProvider
   }
 }
 
-String _$firebaseFirestoreHash() => r'963402713bf9b7cc1fb259d619d9b0184d4dcec1';
+String _$firebaseFirestoreHash() => r'da44e0544482927855093596d84cb41842b27214';
+
+@ProviderFor(firebaseStorage)
+final firebaseStorageProvider = FirebaseStorageProvider._();
+
+final class FirebaseStorageProvider
+    extends
+        $FunctionalProvider<FirebaseStorage, FirebaseStorage, FirebaseStorage>
+    with $Provider<FirebaseStorage> {
+  FirebaseStorageProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'firebaseStorageProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$firebaseStorageHash();
+
+  @$internal
+  @override
+  $ProviderElement<FirebaseStorage> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  FirebaseStorage create(Ref ref) {
+    return firebaseStorage(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FirebaseStorage value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FirebaseStorage>(value),
+    );
+  }
+}
+
+String _$firebaseStorageHash() => r'8e9f5814f2e4871c92e546bca90dbeaf2f43edeb';
 
 @ProviderFor(categoryRepository)
 final categoryRepositoryProvider = CategoryRepositoryProvider._();
@@ -73,7 +115,7 @@ final class CategoryRepositoryProvider
         argument: null,
         retry: null,
         name: r'categoryRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -102,7 +144,7 @@ final class CategoryRepositoryProvider
 }
 
 String _$categoryRepositoryHash() =>
-    r'8da0d51d7ec49330b272449b87389a521e4a95e7';
+    r'35a49cf65c8788d6331cad135956e6579147f3a6';
 
 @ProviderFor(categoriesStream)
 final categoriesStreamProvider = CategoriesStreamProvider._();
@@ -123,7 +165,7 @@ final class CategoriesStreamProvider
         argument: null,
         retry: null,
         name: r'categoriesStreamProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -143,4 +185,4 @@ final class CategoriesStreamProvider
   }
 }
 
-String _$categoriesStreamHash() => r'3272bb4eed58fe62446e96229ea5dfa13277b156';
+String _$categoriesStreamHash() => r'54eeb65d1fb38cdcef00ce45c85713ec3df4dbc9';

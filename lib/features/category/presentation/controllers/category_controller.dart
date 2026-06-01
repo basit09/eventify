@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/repositories/firebase_category_repository.dart';
 
@@ -22,10 +23,10 @@ class CategoryController extends _$CategoryController {
     });
   }
 
-  Future<void> addSubcategory(String categoryId, String subcategoryName) async {
+  Future<void> addSubcategory(String categoryId, String subcategoryName, {File? imageFile}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await ref.read(categoryRepositoryProvider).addSubcategory(categoryId, subcategoryName);
+      await ref.read(categoryRepositoryProvider).addSubcategory(categoryId, subcategoryName, imageFile: imageFile);
     });
   }
 
@@ -36,11 +37,10 @@ class CategoryController extends _$CategoryController {
     });
   }
 
-  Future<void> addCategoryWithSubcategory(String categoryName, String? subcategoryName) async {
+  Future<void> addCategoryWithSubcategory(String categoryName, String? subcategoryName, {File? imageFile}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final repo = ref.read(categoryRepositoryProvider) as dynamic;
-      await repo.addCategoryWithSubcategory(categoryName, subcategoryName);
+      await ref.read(categoryRepositoryProvider).addCategoryWithSubcategory(categoryName, subcategoryName, imageFile: imageFile);
     });
   }
 }
