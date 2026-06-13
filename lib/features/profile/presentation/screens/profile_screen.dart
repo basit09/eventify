@@ -8,7 +8,12 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(firebaseAuthProvider).currentUser;
+    // Watch the reactive auth stream so the screen rebuilds on any auth change.
+    final user = ref.watch(authStateProvider).when(
+      data:    (u) => u,
+      loading: ()  => null,
+      error:   (e, st) => null,
+    );
     final theme = Theme.of(context);
     final themeMode = ref.watch(themeModeControllerProvider);
 
@@ -23,7 +28,9 @@ class ProfileScreen extends ConsumerWidget {
             radius: 50,
             backgroundColor: theme.colorScheme.primaryContainer,
             child: Text(
-              user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+              user != null && user.email.isNotEmpty
+                  ? user.email[0].toUpperCase()
+                  : 'U',
               style: TextStyle(
                 fontSize: 40,
                 color: theme.colorScheme.onPrimaryContainer,
@@ -32,7 +39,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            user?.email ?? 'Unknown User',
+            user != null ? user.email : 'Unknown User',
             textAlign: TextAlign.center,
             style: theme.textTheme.titleLarge,
           ),

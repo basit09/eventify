@@ -18,7 +18,7 @@ class CreateEventController extends _$CreateEventController {
     required DateTime startDate,
     required DateTime endDate,
     required String address,
-    required DateTime setupDate,
+    required String setupDate,
     required List<EventCategoryItem> items,
     String? contactPerson,
     String? contactPhone,

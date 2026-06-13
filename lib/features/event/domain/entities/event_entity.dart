@@ -13,7 +13,7 @@ abstract class EventEntity with _$EventEntity {
     required DateTime endDate,
     required String address,
     required String creatorId,
-    required DateTime setupDate,
+    required String setupDate,
     String? contactPerson,
     String? contactPhone,
     @Default([]) List<EventCategoryItem> items,

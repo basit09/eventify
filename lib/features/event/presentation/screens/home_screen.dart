@@ -228,14 +228,37 @@ class _EventCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final dateStr = '${DateFormat('MMM d').format(event.startDate)} - ${DateFormat('MMM d').format(event.endDate)}';
-    final isUpcoming = event.startDate.isAfter(DateTime.now());
+    final theme     = Theme.of(context);
+    final dateStr   = '${DateFormat('MMM d').format(event.startDate)}'
+        ' - ${DateFormat('MMM d').format(event.endDate)}';
+
+    // Bug fix: must exclude completed events from "Upcoming" — same logic as
+    // AllEventsScreen and EventDetailScreen.
+    final isCompleted = event.isCompleted;
+    final isUpcoming  = !isCompleted && event.startDate.isAfter(DateTime.now());
+
+    // Status badge values
+    final badgeLabel = isCompleted ? 'Completed' : isUpcoming ? 'Upcoming' : 'Past';
+    final badgeColor = isCompleted
+        ? Colors.green
+        : isUpcoming
+            ? theme.colorScheme.onPrimaryContainer
+            : theme.colorScheme.onSurfaceVariant;
+    final badgeBg    = isCompleted
+        ? Colors.green.withValues(alpha: 0.1)
+        : isUpcoming
+            ? theme.colorScheme.primaryContainer
+            : theme.colorScheme.surfaceContainerHighest;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: isCompleted
+            ? BorderSide(color: Colors.green.withValues(alpha: 0.4))
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: () => context.push('/home/event-detail', extra: event),
         child: Padding(
@@ -249,22 +272,29 @@ class _EventCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       event.name,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: isUpcoming ? theme.colorScheme.primaryContainer : theme.colorScheme.surfaceContainerHighest,
+                      color:        badgeBg,
                       borderRadius: BorderRadius.circular(8),
+                      border: isCompleted
+                          ? Border.all(color: Colors.green.withValues(alpha: 0.4))
+                          : null,
                     ),
                     child: Text(
-                      isUpcoming ? 'Upcoming' : 'Past',
+                      badgeLabel,
                       style: TextStyle(
-                        fontSize: 12,
-                        color: isUpcoming ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
+                        fontSize:   11,
+                        color:      badgeColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -274,16 +304,21 @@ class _EventCard extends ConsumerWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(Icons.calendar_today, size: 16,
+                      color: theme.colorScheme.onSurfaceVariant),
                   const SizedBox(width: 4),
-                  Text(dateStr, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(dateStr,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                   const SizedBox(width: 16),
-                  Icon(Icons.location_on, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(Icons.location_on, size: 16,
+                      color: theme.colorScheme.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      event.address, 
-                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      event.address,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -298,16 +333,15 @@ class _EventCard extends ConsumerWidget {
                 children: [
                   Text(
                     '${event.items.length} Categories',
-                    style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
                     color: theme.colorScheme.error,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () {
-                      _confirmDelete(context, ref);
-                    },
+                    onPressed: () => _confirmDelete(context, ref),
                   ),
                 ],
               ),
@@ -318,27 +352,40 @@ class _EventCard extends ConsumerWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
-    showDialog(
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Delete Event'),
         content: Text('Are you sure you want to delete "${event.name}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              ref.read(eventRepositoryProvider).deleteEvent(event.id);
-              Navigator.of(context).pop();
-            },
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
+
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(eventRepositoryProvider).deleteEvent(event.id);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }

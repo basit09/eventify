@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EventEntity {
 
- String get id; String get name; DateTime get startDate; DateTime get endDate; String get address; String get creatorId; DateTime get setupDate; String? get contactPerson; String? get contactPhone; List<EventCategoryItem> get items; bool get isCompleted;
+ String get id; String get name; DateTime get startDate; DateTime get endDate; String get address; String get creatorId; String get setupDate; String? get contactPerson; String? get contactPhone; List<EventCategoryItem> get items; bool get isCompleted;
 /// Create a copy of EventEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $EventEntityCopyWith<$Res>  {
   factory $EventEntityCopyWith(EventEntity value, $Res Function(EventEntity) _then) = _$EventEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, DateTime startDate, DateTime endDate, String address, String creatorId, DateTime setupDate, String? contactPerson, String? contactPhone, List<EventCategoryItem> items, bool isCompleted
+ String id, String name, DateTime startDate, DateTime endDate, String address, String creatorId, String setupDate, String? contactPerson, String? contactPhone, List<EventCategoryItem> items, bool isCompleted
 });
 
 
@@ -74,7 +74,7 @@ as DateTime,endDate: null == endDate ? _self.endDate : endDate // ignore: cast_n
 as DateTime,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String,creatorId: null == creatorId ? _self.creatorId : creatorId // ignore: cast_nullable_to_non_nullable
 as String,setupDate: null == setupDate ? _self.setupDate : setupDate // ignore: cast_nullable_to_non_nullable
-as DateTime,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
+as String,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
 as String?,contactPhone: freezed == contactPhone ? _self.contactPhone : contactPhone // ignore: cast_nullable_to_non_nullable
 as String?,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<EventCategoryItem>,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
@@ -163,7 +163,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  DateTime startDate,  DateTime endDate,  String address,  String creatorId,  DateTime setupDate,  String? contactPerson,  String? contactPhone,  List<EventCategoryItem> items,  bool isCompleted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  DateTime startDate,  DateTime endDate,  String address,  String creatorId,  String setupDate,  String? contactPerson,  String? contactPhone,  List<EventCategoryItem> items,  bool isCompleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EventEntity() when $default != null:
 return $default(_that.id,_that.name,_that.startDate,_that.endDate,_that.address,_that.creatorId,_that.setupDate,_that.contactPerson,_that.contactPhone,_that.items,_that.isCompleted);case _:
@@ -184,7 +184,7 @@ return $default(_that.id,_that.name,_that.startDate,_that.endDate,_that.address,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  DateTime startDate,  DateTime endDate,  String address,  String creatorId,  DateTime setupDate,  String? contactPerson,  String? contactPhone,  List<EventCategoryItem> items,  bool isCompleted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  DateTime startDate,  DateTime endDate,  String address,  String creatorId,  String setupDate,  String? contactPerson,  String? contactPhone,  List<EventCategoryItem> items,  bool isCompleted)  $default,) {final _that = this;
 switch (_that) {
 case _EventEntity():
 return $default(_that.id,_that.name,_that.startDate,_that.endDate,_that.address,_that.creatorId,_that.setupDate,_that.contactPerson,_that.contactPhone,_that.items,_that.isCompleted);case _:
@@ -204,7 +204,7 @@ return $default(_that.id,_that.name,_that.startDate,_that.endDate,_that.address,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  DateTime startDate,  DateTime endDate,  String address,  String creatorId,  DateTime setupDate,  String? contactPerson,  String? contactPhone,  List<EventCategoryItem> items,  bool isCompleted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  DateTime startDate,  DateTime endDate,  String address,  String creatorId,  String setupDate,  String? contactPerson,  String? contactPhone,  List<EventCategoryItem> items,  bool isCompleted)?  $default,) {final _that = this;
 switch (_that) {
 case _EventEntity() when $default != null:
 return $default(_that.id,_that.name,_that.startDate,_that.endDate,_that.address,_that.creatorId,_that.setupDate,_that.contactPerson,_that.contactPhone,_that.items,_that.isCompleted);case _:
@@ -228,7 +228,7 @@ class _EventEntity implements EventEntity {
 @override final  DateTime endDate;
 @override final  String address;
 @override final  String creatorId;
-@override final  DateTime setupDate;
+@override final  String setupDate;
 @override final  String? contactPerson;
 @override final  String? contactPhone;
  final  List<EventCategoryItem> _items;
@@ -273,7 +273,7 @@ abstract mixin class _$EventEntityCopyWith<$Res> implements $EventEntityCopyWith
   factory _$EventEntityCopyWith(_EventEntity value, $Res Function(_EventEntity) _then) = __$EventEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, DateTime startDate, DateTime endDate, String address, String creatorId, DateTime setupDate, String? contactPerson, String? contactPhone, List<EventCategoryItem> items, bool isCompleted
+ String id, String name, DateTime startDate, DateTime endDate, String address, String creatorId, String setupDate, String? contactPerson, String? contactPhone, List<EventCategoryItem> items, bool isCompleted
 });
 
 
@@ -299,7 +299,7 @@ as DateTime,endDate: null == endDate ? _self.endDate : endDate // ignore: cast_n
 as DateTime,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String,creatorId: null == creatorId ? _self.creatorId : creatorId // ignore: cast_nullable_to_non_nullable
 as String,setupDate: null == setupDate ? _self.setupDate : setupDate // ignore: cast_nullable_to_non_nullable
-as DateTime,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
+as String,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
 as String?,contactPhone: freezed == contactPhone ? _self.contactPhone : contactPhone // ignore: cast_nullable_to_non_nullable
 as String?,items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
 as List<EventCategoryItem>,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable

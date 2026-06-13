@@ -12,17 +12,14 @@ abstract class EventCategoryItem with _$EventCategoryItem {
     required String subcategoryId,
     required String subcategoryName,
     @Default(1) int quantity,
-    // Dimension fields — 6 inputs, 3 rows
-    String? height,       // Row-1 left  label "H"  (Height)
-    String? length,       // Row-1 right label "L"  (Length)
-    String? lengthB,      // Row-2 left  label "L"  (second Length / span)
-    String? width,        // Row-2 right label "W"  (Width)
-    String? itemHeight,   // Row-3 left  label "H"  (Height H)
-    String? depth,        // Row-3 right label "D"  (Depth)
-    /// Legacy — kept for records saved before dimension fields existed.
-    String? size,
+    // ── 4 dimension fields ──────────────────────────────────────────────────
+    String? length,   // Row-1 left   (Length × Width)
+    String? width,    // Row-1 right
+    String? height,   // Row-2 left   (Height   Depth — no × sign)
+    String? depth,    // Row-2 right
     String? additionalNotes,
   }) = _EventCategoryItem;
 
-  factory EventCategoryItem.fromJson(Map<String, dynamic> json) => _$EventCategoryItemFromJson(json);
+  factory EventCategoryItem.fromJson(Map<String, dynamic> json) =>
+      _$EventCategoryItemFromJson(json);
 }

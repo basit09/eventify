@@ -34,7 +34,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/home',
     refreshListenable: notifier,
     redirect: (context, state) {
-      final authState = ref.read(authStateProvider);
+      // ref.watch ensures the redirect is re-evaluated whenever auth state
+      // changes (works because GoRouter's refreshListenable re-calls redirect).
+      final authState = ref.watch(authStateProvider);
       if (authState.isLoading || authState.hasError) return null;
 
       final isAuthenticated = authState.value != null;

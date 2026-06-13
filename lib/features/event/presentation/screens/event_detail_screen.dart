@@ -10,14 +10,84 @@ import '../../data/repositories/firebase_event_repository.dart';
 import '../utils/pdf_generator.dart';
 
 class EventDetailScreen extends ConsumerWidget {
+  /// The event passed at navigation time — used ONLY to obtain [event.id].
+  /// All rendered data comes from the live Firestore stream so the screen
+  /// reflects completion toggles and edits without needing to navigate away.
   final EventEntity event;
   const EventDetailScreen({super.key, required this.event});
 
+  // ── Helpers that require the live event ────────────────────────────────────
+
+  void _toggleCompletion(WidgetRef ref, EventEntity live) {
+    ref.read(eventRepositoryProvider)
+        .toggleEventCompletion(live.id, !live.isCompleted);
+  }
+
+  void _showPdfPreview(BuildContext context, EventEntity live) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: const Text('Event Receipt Preview')),
+          body: PdfPreview(
+            build: (format) => EventPdfGenerator.generateReceipt(live),
+            allowPrinting: true,
+            allowSharing: true,
+            actionBarTheme: const PdfActionBarTheme(
+              iconColor: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, WidgetRef ref, EventEntity live) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Event'),
+        content: Text(
+            'Are you sure you want to delete "${live.name}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await ref.read(eventRepositoryProvider).deleteEvent(live.id);
+              if (context.mounted) context.pop();
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    // ── Subscribe to the live events stream and find this event by ID ────────
+    // This ensures the screen rebuilds automatically whenever:
+    //   • isCompleted is toggled
+    //   • the event is edited (quantity, notes, sizes, dates, etc.)
+    final live = ref.watch(eventsStreamProvider).maybeWhen(
+      data: (events) {
+        try {
+          return events.firstWhere((e) => e.id == event.id);
+        } catch (_) {
+          return event; // fallback if deleted mid-session
+        }
+      },
+      orElse: () => event,
+    );
+
+    final theme      = Theme.of(context);
     final dateFormat = DateFormat('EEE, MMM d, yyyy');
-    final isUpcoming = !event.isCompleted && event.startDate.isAfter(DateTime.now());
+    final isUpcoming = !live.isCompleted && live.startDate.isAfter(DateTime.now());
 
     return Scaffold(
       body: CustomScrollView(
@@ -29,7 +99,7 @@ class EventDetailScreen extends ConsumerWidget {
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
               title: Text(
-                event.name,
+                live.name,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -41,10 +111,10 @@ class EventDetailScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      event.isCompleted ? Colors.green : theme.colorScheme.primary,
-                      event.isCompleted 
-                        ? Colors.green.withValues(alpha: 0.6)
-                        : theme.colorScheme.primary.withValues(alpha: 0.6),
+                      live.isCompleted ? Colors.green : theme.colorScheme.primary,
+                      live.isCompleted
+                          ? Colors.green.withValues(alpha: 0.6)
+                          : theme.colorScheme.primary.withValues(alpha: 0.6),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -52,7 +122,7 @@ class EventDetailScreen extends ConsumerWidget {
                 ),
                 child: Center(
                   child: Icon(
-                    event.isCompleted ? Icons.check_circle : Icons.event,
+                    live.isCompleted ? Icons.check_circle : Icons.event,
                     size: 80,
                     color: theme.colorScheme.onPrimary.withValues(alpha: 0.3),
                   ),
@@ -63,18 +133,19 @@ class EventDetailScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 tooltip: 'Download Receipt',
-                onPressed: () => _showPdfPreview(context),
+                onPressed: () => _showPdfPreview(context, live),
               ),
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 tooltip: 'Edit Event',
-                onPressed: () => context.push('/home/event-detail/edit', extra: event),
+                onPressed: () =>
+                    context.push('/home/event-detail/edit', extra: live),
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 tooltip: 'Delete Event',
                 color: theme.colorScheme.error,
-                onPressed: () => _confirmDelete(context, ref),
+                onPressed: () => _confirmDelete(context, ref, live),
               ),
             ],
           ),
@@ -84,48 +155,54 @@ class EventDetailScreen extends ConsumerWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
 
-                // ── Status Badges ─────────────────────────────────────
+                // ── Status Badge + Toggle ─────────────────────────────
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: event.isCompleted
+                        color: live.isCompleted
                             ? Colors.green.withValues(alpha: 0.1)
                             : isUpcoming
                                 ? theme.colorScheme.primaryContainer
                                 : theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(20),
-                        border: event.isCompleted 
-                            ? Border.all(color: Colors.green.withValues(alpha: 0.5))
+                        border: live.isCompleted
+                            ? Border.all(
+                                color: Colors.green.withValues(alpha: 0.5))
                             : null,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            event.isCompleted 
-                              ? Icons.check_circle 
-                              : isUpcoming ? Icons.upcoming : Icons.history,
+                            live.isCompleted
+                                ? Icons.check_circle
+                                : isUpcoming
+                                    ? Icons.upcoming
+                                    : Icons.history,
                             size: 16,
-                            color: event.isCompleted
-                              ? Colors.green
-                              : isUpcoming
-                                  ? theme.colorScheme.onPrimaryContainer
-                                  : theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            event.isCompleted 
-                              ? 'Completed'
-                              : isUpcoming ? 'Upcoming' : 'Past',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: event.isCompleted
+                            color: live.isCompleted
                                 ? Colors.green
                                 : isUpcoming
                                     ? theme.colorScheme.onPrimaryContainer
                                     : theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            live.isCompleted
+                                ? 'Completed'
+                                : isUpcoming
+                                    ? 'Upcoming'
+                                    : 'Past',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: live.isCompleted
+                                  ? Colors.green
+                                  : isUpcoming
+                                      ? theme.colorScheme.onPrimaryContainer
+                                      : theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -133,11 +210,17 @@ class EventDetailScreen extends ConsumerWidget {
                     ),
                     const Spacer(),
                     TextButton.icon(
-                      onPressed: () => _toggleCompletion(ref),
-                      icon: Icon(event.isCompleted ? Icons.undo : Icons.check_circle),
-                      label: Text(event.isCompleted ? 'Mark Active' : 'Mark Completed'),
+                      onPressed: () => _toggleCompletion(ref, live),
+                      icon: Icon(live.isCompleted
+                          ? Icons.undo
+                          : Icons.check_circle),
+                      label: Text(live.isCompleted
+                          ? 'Mark Active'
+                          : 'Mark Completed'),
                       style: TextButton.styleFrom(
-                        foregroundColor: event.isCompleted ? theme.colorScheme.outline : Colors.green,
+                        foregroundColor: live.isCompleted
+                            ? theme.colorScheme.outline
+                            : Colors.green,
                       ),
                     ),
                   ],
@@ -150,47 +233,47 @@ class EventDetailScreen extends ConsumerWidget {
                     _InfoRow(
                       icon: Icons.date_range,
                       label: 'From',
-                      value: dateFormat.format(event.startDate),
+                      value: dateFormat.format(live.startDate),
                     ),
                     const Divider(height: 20),
                     _InfoRow(
                       icon: Icons.event_available,
                       label: 'To',
-                      value: dateFormat.format(event.endDate),
+                      value: dateFormat.format(live.endDate),
                     ),
                     const Divider(height: 20),
                     _InfoRow(
                       icon: Icons.build_circle_outlined,
                       label: 'Setup Date',
-                      value: dateFormat.format(event.setupDate),
+                      value: live.setupDate.isNotEmpty ? live.setupDate : '—',
                     ),
                     const Divider(height: 20),
                     _InfoRow(
                       icon: Icons.location_on_outlined,
                       label: 'Address',
-                      value: event.address,
+                      value: live.address,
                     ),
-                    if (event.contactPerson?.isNotEmpty == true) ...[
+                    if (live.contactPerson?.isNotEmpty == true) ...[
                       const Divider(height: 20),
                       _InfoRow(
                         icon: Icons.person_outline,
                         label: 'Contact Person',
-                        value: event.contactPerson!,
+                        value: live.contactPerson!,
                       ),
                     ],
-                    if (event.contactPhone?.isNotEmpty == true) ...[
+                    if (live.contactPhone?.isNotEmpty == true) ...[
                       const Divider(height: 20),
                       _InfoRow(
                         icon: Icons.phone_outlined,
                         label: 'Contact Phone',
-                        value: event.contactPhone!,
+                        value: live.contactPhone!,
                       ),
                     ],
                     const Divider(height: 20),
                     _InfoRow(
                       icon: Icons.inventory_2_outlined,
                       label: 'Items',
-                      value: '${event.items.length} category item(s)',
+                      value: '${live.items.length} category item(s)',
                     ),
                   ],
                 ),
@@ -198,20 +281,19 @@ class EventDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // ── Category Items ────────────────────────────────────
-                if (event.items.isNotEmpty) ...[
+                if (live.items.isNotEmpty) ...[
                   Text(
                     'Category Requirements',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  ...event.items.asMap().entries.map(
-                    (entry) => _CategoryItemCard(
-                      index: entry.key,
-                      item: entry.value,
-                    ),
-                  ),
+                  ...live.items.asMap().entries.map(
+                        (entry) => _CategoryItemCard(
+                          index: entry.key,
+                          item: entry.value,
+                        ),
+                      ),
                 ] else
                   Center(
                     child: Padding(
@@ -237,57 +319,9 @@ class EventDetailScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
-        onPressed: () => _showPdfPreview(context),
+        onPressed: () => _showPdfPreview(context, live),
         icon: const Icon(Icons.print),
         label: const Text('Export PDF'),
-      ),
-    );
-  }
-
-  void _toggleCompletion(WidgetRef ref) async {
-    await ref.read(eventRepositoryProvider).toggleEventCompletion(event.id, !event.isCompleted);
-  }
-
-  void _showPdfPreview(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text('Event Receipt Preview')),
-          body: PdfPreview(
-            build: (format) => EventPdfGenerator.generateReceipt(event),
-            allowPrinting: true,
-            allowSharing: true,
-            actionBarTheme: const PdfActionBarTheme(
-              iconColor: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Event'),
-        content: Text('Are you sure you want to delete "${event.name}"? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await ref.read(eventRepositoryProvider).deleteEvent(event.id);
-              if (context.mounted) context.pop();
-            },
-            child: const Text('Delete'),
-          ),
-        ],
       ),
     );
   }
@@ -295,13 +329,10 @@ class EventDetailScreen extends ConsumerWidget {
 
 // ── Dimension helpers ─────────────────────────────────────────────────────────
 bool _detailHasDimensions(EventCategoryItem item) =>
-    item.height?.isNotEmpty == true ||
     item.length?.isNotEmpty == true ||
-    item.lengthB?.isNotEmpty == true ||
-    item.width?.isNotEmpty == true ||
-    item.itemHeight?.isNotEmpty == true ||
-    item.depth?.isNotEmpty == true ||
-    item.size?.isNotEmpty == true;
+    item.width?.isNotEmpty  == true ||
+    item.height?.isNotEmpty == true ||
+    item.depth?.isNotEmpty  == true;
 
 // ── Reusable widgets ──────────────────────────────────────────────────────────
 
@@ -449,48 +480,29 @@ class _CategoryItemCard extends ConsumerWidget {
                   color: theme.colorScheme.primary,
                 ),
                 if (_detailHasDimensions(item)) ...[
-                  // Row 1 — H × L
-                  if (item.height?.isNotEmpty == true || item.length?.isNotEmpty == true)
+                  // Length × Width
+                  if (item.length?.isNotEmpty == true ||
+                      item.width?.isNotEmpty  == true)
                     _DetailChip(
-                      icon: Icons.height,
-                      text: [
-                        if (item.height?.isNotEmpty == true) item.height!,
+                      icon:  Icons.straighten,
+                      text:  [
                         if (item.length?.isNotEmpty == true) item.length!,
+                        if (item.width?.isNotEmpty  == true) item.width!,
                       ].join(' × '),
                       color: theme.colorScheme.secondary,
                     ),
-                  // Row 2 — L × W
-                  if (item.lengthB?.isNotEmpty == true || item.width?.isNotEmpty == true)
+                  // Height
+                  if (item.height?.isNotEmpty == true)
                     _DetailChip(
-                      icon: Icons.straighten,
-                      text: [
-                        if (item.lengthB?.isNotEmpty == true) item.lengthB!,
-                        if (item.width?.isNotEmpty == true) item.width!,
-                      ].join(' × '),
+                      icon:  Icons.height,
+                      text:  'H: ${item.height}',
                       color: theme.colorScheme.secondary,
                     ),
-                  // Row 3 — H
-                  if (item.itemHeight?.isNotEmpty == true)
-                    _DetailChip(
-                      icon: Icons.height_outlined,
-                      text: 'H: ${item.itemHeight}',
-                      color: theme.colorScheme.secondary,
-                    ),
-                  // Row 3 — D
+                  // Depth
                   if (item.depth?.isNotEmpty == true)
                     _DetailChip(
-                      icon: Icons.layers_outlined,
-                      text: 'D: ${item.depth}',
-                      color: theme.colorScheme.secondary,
-                    ),
-                  // Legacy fallback
-                  if (item.height == null && item.length == null &&
-                      item.lengthB == null && item.width == null &&
-                      item.itemHeight == null && item.depth == null &&
-                      item.size?.isNotEmpty == true)
-                    _DetailChip(
-                      icon: Icons.straighten,
-                      text: 'Size: ${item.size}',
+                      icon:  Icons.layers_outlined,
+                      text:  'D: ${item.depth}',
                       color: theme.colorScheme.secondary,
                     ),
                 ],

@@ -20,14 +20,20 @@ class FirebaseEventRepository implements EventRepository {
     data['id'] = docId;
 
     // Convert Timestamps → ISO-8601 strings for freezed / json_serializable
-    for (final field in ['startDate', 'endDate', 'setupDate']) {
+    for (final field in ['startDate', 'endDate']) {
       if (data[field] is Timestamp) {
         data[field] = (data[field] as Timestamp).toDate().toIso8601String();
       }
     }
 
-    // Backward-compat: old documents have no setupDate → fall back to startDate
-    data['setupDate'] ??= data['startDate'];
+    // setupDate is now a plain String. Backward-compat: old Timestamp docs
+    // get converted to a readable date string; missing field falls back to ''.
+    if (data['setupDate'] is Timestamp) {
+      final dt = (data['setupDate'] as Timestamp).toDate();
+      data['setupDate'] =
+          '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    }
+    data['setupDate'] ??= '';
 
     return data;
   }

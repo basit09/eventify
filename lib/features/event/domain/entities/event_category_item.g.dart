@@ -14,13 +14,10 @@ _EventCategoryItem _$EventCategoryItemFromJson(Map<String, dynamic> json) =>
       subcategoryId: json['subcategoryId'] as String,
       subcategoryName: json['subcategoryName'] as String,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
-      height: json['height'] as String?,
       length: json['length'] as String?,
-      lengthB: json['lengthB'] as String?,
       width: json['width'] as String?,
-      itemHeight: json['itemHeight'] as String?,
+      height: json['height'] as String?,
       depth: json['depth'] as String?,
-      size: json['size'] as String?,
       additionalNotes: json['additionalNotes'] as String?,
     );
 
@@ -32,12 +29,9 @@ Map<String, dynamic> _$EventCategoryItemToJson(_EventCategoryItem instance) =>
       'subcategoryId': instance.subcategoryId,
       'subcategoryName': instance.subcategoryName,
       'quantity': instance.quantity,
-      'height': instance.height,
       'length': instance.length,
-      'lengthB': instance.lengthB,
       'width': instance.width,
-      'itemHeight': instance.itemHeight,
+      'height': instance.height,
       'depth': instance.depth,
-      'size': instance.size,
       'additionalNotes': instance.additionalNotes,
     };
