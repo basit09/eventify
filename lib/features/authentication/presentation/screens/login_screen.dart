@@ -113,21 +113,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Padding(
                           // Generous tap area — but visually unchanged.
                           padding: const EdgeInsets.all(12),
-                          child: Icon(
-                            Icons.event_available_rounded,
-                            size: 80,
-                            color: theme.colorScheme.onPrimary,
-                          ),
+
+                          child: Image.asset(
+                            'assets/logo_full_text.png',
+                            width: 280,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          )
+                          ,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'MA Productions',
-                        style: textTheme.displayMedium?.copyWith(
-                          color:      theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+
                       Text(
                         'Manage your events seamlessly',
                         style: textTheme.titleMedium?.copyWith(

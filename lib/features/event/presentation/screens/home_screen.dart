@@ -35,11 +35,12 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 40.0),
-                    child: Icon(
-                      Icons.event,
-                      size: 80,
-                      color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
+                    padding: const EdgeInsets.only(top: 40.0, left: 20.0, right: 20.0),
+                    child: Image.asset(
+                      'assets/logo_full_text.png',
+                      width: double.infinity,
+                      fit: BoxFit.fitWidth, // or BoxFit.fitWidth
+                      color: theme.colorScheme.onPrimary.withValues(alpha: 1),
                     ),
                   ),
                 ),
