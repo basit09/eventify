@@ -7,91 +7,79 @@ import '../../domain/entities/event_entity.dart';
 
 class EventPdfGenerator {
   static Future<Uint8List> generateReceipt(EventEntity event) async {
-    final pdf       = pw.Document();
-    final dateFmt   = DateFormat('EEE, MMM d, yyyy');
+    final pdf = pw.Document();
+    final dateFmt = DateFormat('EEE, MMM d, yyyy');
 
     // Load the app icon as a PDF image
-    final logoBytes = await rootBundle.load('assets/app_icon.png');
+    final logoBytes = await rootBundle.load('assets/logo_text_black.png');
     final logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin:     const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.all(28),
         build: (pw.Context context) {
           return [
             // ── Header: App Logo + Status badge ──────────────────────────
             pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               crossAxisAlignment: pw.CrossAxisAlignment.center,
               children: [
-                // ── App Logo block ────────────────────────────────────────
-                pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    // Actual app icon
-                    pw.Container(
-                      width:  52,
-                      height: 52,
-                      decoration: pw.BoxDecoration(
-                        borderRadius: const pw.BorderRadius.all(
-                            pw.Radius.circular(10)),
-                      ),
-                      child: pw.ClipRRect(
-                        horizontalRadius: 10,
-                        verticalRadius:   10,
-                        child: pw.Image(logoImage,
-                            width: 52, height: 52, fit: pw.BoxFit.cover),
-                      ),
+                // Logo on the left
+                pw.Expanded(
+                  child: pw.Container(
+                    alignment: pw.Alignment.centerLeft,
+                    height: 100,
+                    child: pw.Image(
+                      logoImage,
+                      width: 250,
+                      fit: pw.BoxFit.fitWidth,
                     ),
-                    pw.SizedBox(width: 12),
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          'MA Productions',
-                          style: pw.TextStyle(
-                            fontSize:   18,
-                            fontWeight: pw.FontWeight.bold,
-                            color:      PdfColors.blue900,
-                          ),
-                        ),
-                        pw.Text(
-                          'Event Receipt  ·  ID: ${event.id.substring(0, 8).toUpperCase()}',
-                          style: const pw.TextStyle(
-                              fontSize: 9, color: PdfColors.grey600),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
 
-                // ── Status badge ──────────────────────────────────────────
-                pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
-                  decoration: pw.BoxDecoration(
-                    color: event.isCompleted
-                        ? PdfColors.green100
-                        : PdfColors.blue100,
-                    borderRadius: const pw.BorderRadius.all(
-                        pw.Radius.circular(4)),
-                  ),
-                  child: pw.Text(
-                    event.isCompleted ? 'COMPLETED' : 'UPCOMING',
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      color:      event.isCompleted
-                          ? PdfColors.green900
-                          : PdfColors.blue900,
-                      fontSize: 11,
+                // Right side
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                      'Event Receipt ID: ${event.id.substring(0, 8).toUpperCase()}',
+                      style: pw.TextStyle(
+                        fontSize: 12,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ),
+
+                    pw.SizedBox(height: 8),
+
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: pw.BoxDecoration(
+                        color: event.isCompleted
+                            ? PdfColors.green100
+                            : PdfColors.blue100,
+                        borderRadius: const pw.BorderRadius.all(
+                          pw.Radius.circular(4),
+                        ),
+                      ),
+                      child: pw.Text(
+                        event.isCompleted ? 'COMPLETED' : 'UPCOMING',
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 11,
+                          color: event.isCompleted
+                              ? PdfColors.green900
+                              : PdfColors.blue900,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
 
-            pw.SizedBox(height: 20),
             pw.Divider(thickness: 1, color: PdfColors.grey300),
             pw.SizedBox(height: 14),
 
@@ -108,8 +96,9 @@ class EventPdfGenerator {
                       pw.Text(
                         _s(event.name),
                         style: pw.TextStyle(
-                            fontSize:   16,
-                            fontWeight: pw.FontWeight.bold),
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
                       ),
                       pw.SizedBox(height: 10),
                       _sectionTitle('Location'),
@@ -151,55 +140,66 @@ class EventPdfGenerator {
             pw.Text(
               'CATEGORY REQUIREMENTS',
               style: pw.TextStyle(
-                  fontSize:   13,
-                  fontWeight: pw.FontWeight.bold,
-                  color:      PdfColors.blue900),
+                fontSize: 15,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue900,
+              ),
             ),
             pw.SizedBox(height: 6),
             pw.Table(
-              border:        pw.TableBorder.all(
-                  color: PdfColors.grey300, width: 0.5),
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
               columnWidths: {
                 // Column order: Category | Subcategory | L | W | H | D | Qty | Notes
-                0: const pw.FixedColumnWidth(72),  // Category
-                1: const pw.FixedColumnWidth(88),  // Subcategory
-                2: const pw.FixedColumnWidth(38),  // L
-                3: const pw.FixedColumnWidth(38),  // W
-                4: const pw.FixedColumnWidth(38),  // H
-                5: const pw.FixedColumnWidth(38),  // D
-                6: const pw.FixedColumnWidth(28),  // Qty
-                7: const pw.FlexColumnWidth(),     // Notes
+                0: const pw.FixedColumnWidth(72),
+                // Category
+                1: const pw.FixedColumnWidth(88),
+                // Subcategory
+                2: const pw.FixedColumnWidth(38),
+                // L
+                3: const pw.FixedColumnWidth(38),
+                // W
+                4: const pw.FixedColumnWidth(38),
+                // H
+                5: const pw.FixedColumnWidth(38),
+                // D
+                6: const pw.FixedColumnWidth(28),
+                // Qty
+                7: const pw.FlexColumnWidth(),
+                // Notes
               },
               children: [
                 // Header
                 pw.TableRow(
-                  decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey100),
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey100),
                   children: [
-                    _tableCell('Category',    isHeader: true),
+                    _tableCell('Category', isHeader: true),
                     _tableCell('Subcategory', isHeader: true),
-                    _tableCell('L',           isHeader: true),
-                    _tableCell('W',           isHeader: true),
-                    _tableCell('H',           isHeader: true),
-                    _tableCell('D',           isHeader: true),
-                    _tableCell('Qty',         isHeader: true),
-                    _tableCell('Notes',       isHeader: true),
+                    _tableCell('L', isHeader: true),
+                    _tableCell('W', isHeader: true),
+                    _tableCell('H', isHeader: true),
+                    _tableCell('D', isHeader: true),
+                    _tableCell('Qty', isHeader: true),
+                    _tableCell('Notes', isHeader: true),
                   ],
                 ),
                 // Data rows
                 ...event.items.map(
-                  (item) => pw.TableRow(children: [
-                    _tableCell(_s(item.categoryName)),
-                    _tableCell(item.subcategoryName == '—'
-                        ? ''
-                        : _s(item.subcategoryName)),
-                    _tableCell(_s(item.length)),
-                    _tableCell(_s(item.width)),
-                    _tableCell(_s(item.height)),
-                    _tableCell(_s(item.depth)),
-                    _tableCell(item.quantity.toString()),
-                    _tableCell(_s(item.additionalNotes)),
-                  ]),
+                  (item) => pw.TableRow(
+                    children: [
+                      _tableCell(_s(item.categoryName)),
+                      _tableCell(
+                        item.subcategoryName == '—'
+                            ? ''
+                            : _s(item.subcategoryName),
+                      ),
+                      _tableCell(_s(item.length)),
+                      _tableCell(_s(item.width)),
+                      _tableCell(_s(item.height)),
+                      _tableCell(_s(item.depth)),
+                      _tableCell(item.quantity.toString()),
+                      _tableCell(_s(item.additionalNotes)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -220,11 +220,11 @@ class EventPdfGenerator {
   static String _s(String? raw) {
     if (raw == null || raw.isEmpty) return '';
     return raw
-        .replaceAll('–', '-')  // en-dash  → hyphen
-        .replaceAll('—', '-')  // em-dash  → hyphen
-        .replaceAll('‘', "'")  // left  '  → apostrophe
-        .replaceAll('’', "'")  // right '  → apostrophe
-        .replaceAll('“', '"')  // left  "  → quote
+        .replaceAll('–', '-') // en-dash  → hyphen
+        .replaceAll('—', '-') // em-dash  → hyphen
+        .replaceAll('‘', "'") // left  '  → apostrophe
+        .replaceAll('’', "'") // right '  → apostrophe
+        .replaceAll('“', '"') // left  "  → quote
         .replaceAll('”', '"'); // right "  → quote
     // U+00B7 (·, middle dot) is valid in Latin-1 — no substitution needed.
   }
@@ -237,8 +237,8 @@ class EventPdfGenerator {
       child: pw.Text(
         title.toUpperCase(),
         style: pw.TextStyle(
-          fontSize:   9,
-          color:      PdfColors.grey600,
+          fontSize: 9,
+          color: PdfColors.grey600,
           fontWeight: pw.FontWeight.bold,
         ),
       ),
@@ -251,7 +251,7 @@ class EventPdfGenerator {
       child: pw.Text(
         text,
         style: pw.TextStyle(
-          fontSize:   isHeader ? 9 : 8,
+          fontSize: isHeader ? 9 : 8,
           fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
         ),
       ),

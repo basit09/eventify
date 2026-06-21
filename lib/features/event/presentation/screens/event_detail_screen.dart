@@ -469,7 +469,8 @@ class _CategoryItemCard extends ConsumerWidget {
               const SizedBox(height: 8),
             ],
 
-            // Stats row
+
+    // Stats row
             Wrap(
               spacing: 16,
               runSpacing: 8,
